@@ -69,9 +69,6 @@ pub struct Config {
     // if unconfigured.
     tls: TlsContainer,
     /// Token used to authenticate when identifying with the gateway.
-    ///
-    /// The token is prefixed with "Bot ", which is required by Discord for
-    /// authentication.
     token: Token,
 }
 
@@ -178,10 +175,6 @@ impl ConfigBuilder {
     ///
     /// Panics if loading TLS certificates fails.
     pub fn new(mut token: String, intents: Intents) -> Self {
-        if !token.starts_with("Bot ") {
-            token.insert_str(0, "Bot ");
-        }
-
         Self {
             inner: Config {
                 event_types: EventTypeFlags::all(),
