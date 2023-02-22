@@ -634,16 +634,17 @@ impl Shard {
                     tracing::debug!("sending identify");
                     let identify = Identify::new(IdentifyInfo {
                         compress: false,
-                        intents: self.config.intents(),
-                        large_threshold: self.config.large_threshold(),
+                        //intents: self.config.intents(),
+                        //large_threshold: self.config.large_threshold(),
                         presence: self.config.presence().cloned(),
                         properties: self
                             .config
                             .identify_properties()
                             .cloned()
                             .unwrap_or_else(default_identify_properties),
-                        shard: Some(self.id()),
+                        //shard: Some(self.id()),
                         token: self.config.token().to_owned(),
+                        ..Default::default()
                     });
                     let json =
                         command::prepare(&identify).map_err(ReceiveMessageError::from_send)?;

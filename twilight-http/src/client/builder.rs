@@ -132,7 +132,7 @@ impl ClientBuilder {
     }
 
     /// Set the token to use for HTTP requests.
-    pub fn token(mut self, mut token: String) -> Self {
+    pub fn token(mut self, token: String) -> Self {
         self.token.replace(Token::new(token.into_boxed_str()));
 
         self

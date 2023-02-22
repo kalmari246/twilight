@@ -174,7 +174,7 @@ impl ConfigBuilder {
     /// # Panics
     ///
     /// Panics if loading TLS certificates fails.
-    pub fn new(mut token: String, intents: Intents) -> Self {
+    pub fn new(token: String, intents: Intents) -> Self {
         Self {
             inner: Config {
                 event_types: EventTypeFlags::all(),
