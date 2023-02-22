@@ -17,9 +17,9 @@ impl Identify {
     }
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct IdentifyInfo {
-    pub capabilities: u8,
+    pub capabilities: u16,
     pub client_state: IdentifyClientState,
     pub compress: bool,
     //pub intents: Intents,
@@ -30,7 +30,20 @@ pub struct IdentifyInfo {
     pub token: String,
 }
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+impl Default for IdentifyInfo {
+    fn default() -> Self {
+        Self {
+            capabilities: 4093,
+            properties: IdentifyProperties::default(),
+            presence: None,
+            compress: false,
+            client_state: IdentifyClientState::default(),
+            token: String::new(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct IdentifyClientState {
     pub api_code_version: i8,
     pub guild_versions: IdentifyGuildVersions,
@@ -41,22 +54,24 @@ pub struct IdentifyClientState {
     pub user_settings_version: i8,
 }
 
-impl IdentifyClientState {
-    pub fn new() -> Self {
+impl Default for IdentifyClientState {
+    fn default() -> Self {
         Self {
+            api_code_version: 0,
+            guild_versions: IdentifyGuildVersions {},
             highest_last_message_id: String::from("0"),
             private_channels_version: String::from("0"),
+            read_state_version: 0,
             user_guild_settings_version: -1,
             user_settings_version: -1,
-            ..Default::default()
         }
     }
 }
 
 #[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct IdentifyGuildVersions;
+pub struct IdentifyGuildVersions {}
 
-#[derive(Clone, Debug, Default, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct IdentifyProperties {
     pub browser: String,
     pub browser_user_agent: String,
@@ -80,15 +95,27 @@ impl IdentifyProperties {
         _device: impl Into<String>,
         _os: impl Into<String>,
     ) -> Self {
+        Self::default()
+    }
+}
+
+impl Default for IdentifyProperties {
+    fn default() -> Self {
         Self {
             browser: String::from("Chrome"),
             browser_user_agent: String::from("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"),
             browser_version: String::from("109.0.0.0"),
             client_build_number: 175_627,
+            client_event_source: None,
+            device: String::from(""),
             os: String::from("Linux"),
+            os_version: String::new(),
+            referrer: String::new(),
+            referrer_current: String::new(),
+            referrering_domain: String::new(),
+            referrering_domain_current: String::new(),
             release_channel: String::from("stable"),
             system_locale: String::from("en-US"),
-            ..Default::default()
         }
     }
 }
