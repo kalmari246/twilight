@@ -248,7 +248,7 @@ impl UpdateCache for GuildUpdate {
 
         if let Some(mut guild) = cache.guilds.get_mut(&self.0.id) {
             guild.afk_channel_id = self.afk_channel_id;
-            guild.afk_timeout = self.afk_timeout;
+            guild.afk_timeout = Some(self.afk_timeout);
             guild.banner = self.banner;
             guild.default_message_notifications = self.default_message_notifications;
             guild.description = self.description.clone();

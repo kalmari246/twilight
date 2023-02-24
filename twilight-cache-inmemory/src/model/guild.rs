@@ -19,7 +19,7 @@ use twilight_model::{
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct CachedGuild {
     pub(crate) afk_channel_id: Option<Id<ChannelMarker>>,
-    pub(crate) afk_timeout: AfkTimeout,
+    pub(crate) afk_timeout: Option<AfkTimeout>,
     pub(crate) application_id: Option<Id<ApplicationMarker>>,
     pub(crate) banner: Option<ImageHash>,
     pub(crate) default_message_notifications: DefaultMessageNotificationLevel,
@@ -64,7 +64,7 @@ impl CachedGuild {
     }
 
     /// AFK timeout in seconds.
-    pub const fn afk_timeout(&self) -> AfkTimeout {
+    pub const fn afk_timeout(&self) -> Option<AfkTimeout> {
         self.afk_timeout
     }
 
