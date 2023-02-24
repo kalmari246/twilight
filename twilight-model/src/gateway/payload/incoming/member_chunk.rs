@@ -152,7 +152,7 @@ impl<'de> Visitor<'de> for MemberChunkVisitor {
         );
 
         for presence in &mut presences {
-            presence.guild_id = guild_id;
+            presence.guild_id = Some(guild_id);
         }
 
         Ok(MemberChunk {

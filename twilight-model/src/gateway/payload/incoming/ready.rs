@@ -1,12 +1,12 @@
 use crate::{
-    gateway::ShardId, guild::UnavailableGuild, oauth::PartialApplication, user::CurrentUser,
+    gateway::ShardId, guild::Guild, oauth::PartialApplication, user::CurrentUser,
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Ready {
-    pub application: PartialApplication,
-    pub guilds: Vec<UnavailableGuild>,
+    pub application: Option<PartialApplication>,
+    pub guilds: Vec<Guild>,
     pub resume_gateway_url: String,
     pub session_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -43,10 +43,10 @@ mod tests {
         ];
 
         let ready = Ready {
-            application: PartialApplication {
+            application: Some(PartialApplication {
                 flags: ApplicationFlags::empty(),
                 id: Id::new(100),
-            },
+            }),
             guilds,
             resume_gateway_url: "wss://gateway.discord.gg".into(),
             session_id: "foo".to_owned(),

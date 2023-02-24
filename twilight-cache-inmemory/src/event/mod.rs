@@ -16,7 +16,7 @@ pub mod voice_state;
 use crate::{config::ResourceType, InMemoryCache, UpdateCache};
 use std::{borrow::Cow, collections::HashSet};
 use twilight_model::{
-    gateway::payload::incoming::{Ready, UnavailableGuild, UserUpdate},
+    gateway::payload::incoming::{GuildCreate, Ready, UnavailableGuild, UserUpdate},
     id::{marker::GuildMarker, Id},
     user::{CurrentUser, User},
 };
@@ -69,7 +69,7 @@ impl UpdateCache for Ready {
 
         if cache.wants(ResourceType::GUILD) {
             for guild in &self.guilds {
-                cache.unavailable_guild(guild.id);
+                cache.update(&GuildCreate(guild.clone()));
             }
         }
     }

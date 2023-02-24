@@ -40,7 +40,7 @@ pub struct Presence {
     #[serde(default)]
     pub activities: Vec<Activity>,
     pub client_status: ClientStatus,
-    pub guild_id: Id<GuildMarker>,
+    pub guild_id: Option<Id<GuildMarker>>,
     pub status: Status,
     pub user: UserOrId,
 }
@@ -79,7 +79,7 @@ impl PresenceIntermediary {
         Presence {
             activities: self.activities,
             client_status: self.client_status,
-            guild_id: self.guild_id.unwrap_or(guild_id),
+            guild_id: Some(self.guild_id.unwrap_or(guild_id)),
             status: self.status,
             user: self.user,
         }
@@ -102,7 +102,7 @@ impl<'de> Visitor<'de> for PresenceVisitor {
         Ok(Presence {
             activities: presence.activities,
             client_status: presence.client_status,
-            guild_id: presence.guild_id.unwrap_or(self.0),
+            guild_id: Some(presence.guild_id.unwrap_or(self.0)),
             status: presence.status,
             user: presence.user,
         })
@@ -210,7 +210,7 @@ mod tests {
                 mobile: None,
                 web: None,
             },
-            guild_id: Id::new(2),
+            guild_id: Some(Id::new(2)),
             status: Status::Online,
             user: UserOrId::UserId { id: Id::new(1) },
         };
@@ -312,7 +312,7 @@ mod tests {
                 mobile: None,
                 web: None,
             },
-            guild_id: Id::new(2),
+            guild_id: Some(Id::new(2)),
             status: Status::Online,
             user: UserOrId::UserId { id: Id::new(1) },
         }]);

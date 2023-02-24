@@ -11,11 +11,16 @@ impl InMemoryCache {
         presences: impl IntoIterator<Item = CachedPresence>,
     ) {
         for presence in presences {
-            self.cache_presence(guild_id, presence);
+            self.cache_presence(Some(guild_id), presence);
         }
     }
 
-    fn cache_presence(&self, guild_id: Id<GuildMarker>, presence: CachedPresence) {
+    fn cache_presence(&self, guild_id: Option<Id<GuildMarker>>, presence: CachedPresence) {
+        // TODO: non-guild bound presences.
+        let Some(guild_id) = guild_id else {
+            return;
+        };
+
         self.guild_presences
             .entry(guild_id)
             .or_default()

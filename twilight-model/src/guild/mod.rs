@@ -753,7 +753,7 @@ impl<'de> Deserialize<'de> for Guild {
                 }
 
                 for presence in &mut presences {
-                    presence.guild_id = id;
+                    presence.guild_id = Some(id);
                 }
 
                 for thread in &mut threads {
