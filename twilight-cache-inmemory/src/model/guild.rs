@@ -25,7 +25,7 @@ pub struct CachedGuild {
     pub(crate) default_message_notifications: Option<DefaultMessageNotificationLevel>,
     pub(crate) description: Option<String>,
     pub(crate) discovery_splash: Option<ImageHash>,
-    pub(crate) explicit_content_filter: ExplicitContentFilter,
+    pub(crate) explicit_content_filter: Option<ExplicitContentFilter>,
     pub(crate) features: Vec<GuildFeature>,
     pub(crate) icon: Option<ImageHash>,
     pub(crate) id: Id<GuildMarker>,
@@ -35,13 +35,13 @@ pub struct CachedGuild {
     pub(crate) max_presences: Option<u64>,
     pub(crate) max_video_channel_users: Option<u64>,
     pub(crate) member_count: Option<u64>,
-    pub(crate) mfa_level: MfaLevel,
-    pub(crate) name: String,
-    pub(crate) nsfw_level: NSFWLevel,
-    pub(crate) owner_id: Id<UserMarker>,
+    pub(crate) mfa_level: Option<MfaLevel>,
+    pub(crate) name: Option<String>,
+    pub(crate) nsfw_level: Option<NSFWLevel>,
+    pub(crate) owner_id: Option<Id<UserMarker>>,
     pub(crate) owner: Option<bool>,
     pub(crate) permissions: Option<Permissions>,
-    pub(crate) preferred_locale: String,
+    pub(crate) preferred_locale: Option<String>,
     pub(crate) premium_progress_bar_enabled: bool,
     pub(crate) premium_subscription_count: Option<u64>,
     pub(crate) premium_tier: PremiumTier,
@@ -49,10 +49,10 @@ pub struct CachedGuild {
     pub(crate) rules_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) splash: Option<ImageHash>,
     pub(crate) system_channel_id: Option<Id<ChannelMarker>>,
-    pub(crate) system_channel_flags: SystemChannelFlags,
+    pub(crate) system_channel_flags: Option<SystemChannelFlags>,
     pub(crate) unavailable: bool,
     pub(crate) vanity_url_code: Option<String>,
-    pub(crate) verification_level: VerificationLevel,
+    pub(crate) verification_level: Option<VerificationLevel>,
     pub(crate) widget_channel_id: Option<Id<ChannelMarker>>,
     pub(crate) widget_enabled: Option<bool>,
 }
@@ -102,7 +102,7 @@ impl CachedGuild {
     }
 
     /// Explicit content filter level.
-    pub const fn explicit_content_filter(&self) -> ExplicitContentFilter {
+    pub const fn explicit_content_filter(&self) -> Option<ExplicitContentFilter> {
         self.explicit_content_filter
     }
 
@@ -160,17 +160,17 @@ impl CachedGuild {
     }
 
     /// Required MFA level.
-    pub const fn mfa_level(&self) -> MfaLevel {
+    pub const fn mfa_level(&self) -> Option<MfaLevel> {
         self.mfa_level
     }
 
     /// Name of the guild.
-    pub fn name(&self) -> &str {
-        &self.name
+    pub fn name(&self) -> Option<&str> {
+        self.name.as_deref()
     }
 
     /// NSFW level.
-    pub const fn nsfw_level(&self) -> NSFWLevel {
+    pub const fn nsfw_level(&self) -> Option<NSFWLevel> {
         self.nsfw_level
     }
 
@@ -180,7 +180,7 @@ impl CachedGuild {
     }
 
     /// ID of the guild's owner.
-    pub const fn owner_id(&self) -> Id<UserMarker> {
+    pub const fn owner_id(&self) -> Option<Id<UserMarker>> {
         self.owner_id
     }
 
@@ -192,8 +192,8 @@ impl CachedGuild {
     /// Preferred locale for Community guilds.
     ///
     /// Used in server discovery and notices from Discord. Defaults to "en-US".
-    pub fn preferred_locale(&self) -> &str {
-        &self.preferred_locale
+    pub fn preferred_locale(&self) -> Option<&str> {
+        self.preferred_locale.as_deref()
     }
 
     /// Whether the premium progress bar is enabled.
@@ -239,7 +239,7 @@ impl CachedGuild {
     }
 
     /// System channel flags.
-    pub const fn system_channel_flags(&self) -> SystemChannelFlags {
+    pub const fn system_channel_flags(&self) -> Option<SystemChannelFlags> {
         self.system_channel_flags
     }
 
@@ -254,7 +254,7 @@ impl CachedGuild {
     }
 
     /// Required verification level.
-    pub const fn verification_level(&self) -> VerificationLevel {
+    pub const fn verification_level(&self) -> Option<VerificationLevel> {
         self.verification_level
     }
 

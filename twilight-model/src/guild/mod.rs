@@ -90,8 +90,9 @@ pub struct Guild {
     pub description: Option<String>,
     pub discovery_splash: Option<ImageHash>,
     pub emojis: Vec<Emoji>,
-    pub explicit_content_filter: ExplicitContentFilter,
+    pub explicit_content_filter: Option<ExplicitContentFilter>,
     /// Enabled guild features
+    #[serde(default)]
     pub features: Vec<GuildFeature>,
     pub icon: Option<ImageHash>,
     pub id: Id<GuildMarker>,
@@ -108,16 +109,17 @@ pub struct Guild {
     pub member_count: Option<u64>,
     #[serde(default)]
     pub members: Vec<Member>,
-    pub mfa_level: MfaLevel,
-    pub name: String,
-    pub nsfw_level: NSFWLevel,
-    pub owner_id: Id<UserMarker>,
+    pub mfa_level: Option<MfaLevel>,
+    pub name: Option<String>,
+    pub nsfw_level: Option<NSFWLevel>,
+    pub owner_id: Option<Id<UserMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub owner: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub permissions: Option<Permissions>,
-    pub preferred_locale: String,
+    pub preferred_locale: Option<String>,
     /// Whether the premium progress bar is enabled in the guild.
+    #[serde(default)]
     pub premium_progress_bar_enabled: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub premium_subscription_count: Option<u64>,
@@ -135,14 +137,15 @@ pub struct Guild {
     pub stage_instances: Vec<StageInstance>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub stickers: Vec<Sticker>,
-    pub system_channel_flags: SystemChannelFlags,
+    pub system_channel_flags: Option<SystemChannelFlags>,
     pub system_channel_id: Option<Id<ChannelMarker>>,
     #[serde(default)]
     pub threads: Vec<Channel>,
     #[serde(default)]
     pub unavailable: bool,
     pub vanity_url_code: Option<String>,
-    pub verification_level: VerificationLevel,
+    #[serde(default)]
+    pub verification_level: Option<VerificationLevel>,
     #[serde(default)]
     pub voice_states: Vec<VoiceState>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -637,23 +640,10 @@ impl<'de> Deserialize<'de> for Guild {
                     }
                 }
 
-                let explicit_content_filter = explicit_content_filter
-                    .ok_or_else(|| DeError::missing_field("explicit_content_filter"))?;
-                let features = features.ok_or_else(|| DeError::missing_field("features"))?;
                 let id = id.ok_or_else(|| DeError::missing_field("id"))?;
-                let mfa_level = mfa_level.ok_or_else(|| DeError::missing_field("mfa_level"))?;
-                let name = name.ok_or_else(|| DeError::missing_field("name"))?;
-                let owner_id = owner_id.ok_or_else(|| DeError::missing_field("owner_id"))?;
-                let preferred_locale =
-                    preferred_locale.ok_or_else(|| DeError::missing_field("preferred_locale"))?;
                 let roles = roles.ok_or_else(|| DeError::missing_field("roles"))?;
-                let system_channel_flags = system_channel_flags
-                    .ok_or_else(|| DeError::missing_field("system_channel_flags"))?;
-                let premium_progress_bar_enabled = premium_progress_bar_enabled
-                    .ok_or_else(|| DeError::missing_field("premium_progress_bar_enabled"))?;
-                let verification_level = verification_level
-                    .ok_or_else(|| DeError::missing_field("verification_level"))?;
 
+                let features = features.unwrap_or_default();
                 let afk_channel_id = afk_channel_id.unwrap_or_default();
                 let application_id = application_id.unwrap_or_default();
                 let approximate_member_count = approximate_member_count.unwrap_or_default();
@@ -671,12 +661,12 @@ impl<'de> Deserialize<'de> for Guild {
                 let max_video_channel_users = max_video_channel_users.unwrap_or_default();
                 let member_count = member_count.unwrap_or_default();
                 let members = members.unwrap_or_default();
-                let nsfw_level = nsfw_level.ok_or_else(|| DeError::missing_field("nsfw_level"))?;
                 let owner = owner.unwrap_or_default();
                 let permissions = permissions.unwrap_or_default();
                 let premium_subscription_count = premium_subscription_count.unwrap_or_default();
                 let premium_tier = premium_tier.unwrap_or_default();
                 let mut presences = presences.unwrap_or_default();
+                let premium_progress_bar_enabled = premium_progress_bar_enabled.unwrap_or_default();
                 let public_updates_channel_id = public_updates_channel_id.unwrap_or_default();
                 let rules_channel_id = rules_channel_id.unwrap_or_default();
                 let splash = splash.unwrap_or_default();
@@ -690,7 +680,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let widget_channel_id = widget_channel_id.unwrap_or_default();
                 let widget_enabled = widget_enabled.unwrap_or_default();
 
-                tracing::trace!(
+                /*tracing::trace!(
                     ?afk_channel_id,
                     ?afk_timeout,
                     ?application_id,
@@ -742,7 +732,7 @@ impl<'de> Deserialize<'de> for Guild {
                     ?widget_channel_id,
                     ?widget_enabled,
                     ?verification_level,
-                );
+                );*/
 
                 for channel in &mut channels {
                     channel.guild_id = Some(id);

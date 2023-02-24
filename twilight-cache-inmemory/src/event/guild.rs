@@ -256,20 +256,20 @@ impl UpdateCache for GuildUpdate {
             guild.icon = self.icon;
             guild.max_members = self.max_members;
             guild.max_presences = Some(self.max_presences.unwrap_or(25000));
-            guild.mfa_level = self.mfa_level;
-            guild.name = self.name.clone();
-            guild.nsfw_level = self.nsfw_level;
+            guild.mfa_level = Some(self.mfa_level);
+            guild.name = Some(self.name.clone());
+            guild.nsfw_level = Some(self.nsfw_level);
             guild.owner = self.owner;
-            guild.owner_id = self.owner_id;
+            guild.owner_id = Some(self.owner_id);
             guild.permissions = self.permissions;
-            guild.preferred_locale = self.preferred_locale.clone();
+            guild.preferred_locale = Some(self.preferred_locale.clone());
             guild.premium_tier = self.premium_tier;
             guild
                 .premium_subscription_count
                 .replace(self.premium_subscription_count.unwrap_or_default());
             guild.splash = self.splash;
             guild.system_channel_id = self.system_channel_id;
-            guild.verification_level = self.verification_level;
+            guild.verification_level = Some(self.verification_level);
             guild.vanity_url_code = self.vanity_url_code.clone();
             guild.widget_channel_id = self.widget_channel_id;
             guild.widget_enabled = self.widget_enabled;
