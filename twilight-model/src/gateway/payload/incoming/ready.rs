@@ -1,5 +1,8 @@
 use crate::{
-    gateway::ShardId, guild::Guild, oauth::PartialApplication, user::{CurrentUser, User},
+    gateway::ShardId,
+    guild::Guild,
+    oauth::PartialApplication,
+    user::{CurrentUser, User},
 };
 use serde::{Deserialize, Serialize};
 

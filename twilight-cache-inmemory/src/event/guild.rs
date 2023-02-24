@@ -250,7 +250,7 @@ impl UpdateCache for GuildUpdate {
             guild.afk_channel_id = self.afk_channel_id;
             guild.afk_timeout = Some(self.afk_timeout);
             guild.banner = self.banner;
-            guild.default_message_notifications = self.default_message_notifications;
+            guild.default_message_notifications = Some(self.default_message_notifications);
             guild.description = self.description.clone();
             guild.features = self.features.clone();
             guild.icon = self.icon;

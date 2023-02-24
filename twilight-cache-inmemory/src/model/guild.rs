@@ -22,7 +22,7 @@ pub struct CachedGuild {
     pub(crate) afk_timeout: Option<AfkTimeout>,
     pub(crate) application_id: Option<Id<ApplicationMarker>>,
     pub(crate) banner: Option<ImageHash>,
-    pub(crate) default_message_notifications: DefaultMessageNotificationLevel,
+    pub(crate) default_message_notifications: Option<DefaultMessageNotificationLevel>,
     pub(crate) description: Option<String>,
     pub(crate) discovery_splash: Option<ImageHash>,
     pub(crate) explicit_content_filter: ExplicitContentFilter,
@@ -83,7 +83,7 @@ impl CachedGuild {
     }
 
     /// Default message notification level.
-    pub const fn default_message_notifications(&self) -> DefaultMessageNotificationLevel {
+    pub const fn default_message_notifications(&self) -> Option<DefaultMessageNotificationLevel> {
         self.default_message_notifications
     }
 

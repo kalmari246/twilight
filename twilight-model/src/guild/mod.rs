@@ -86,7 +86,7 @@ pub struct Guild {
     pub banner: Option<ImageHash>,
     #[serde(default)]
     pub channels: Vec<Channel>,
-    pub default_message_notifications: DefaultMessageNotificationLevel,
+    pub default_message_notifications: Option<DefaultMessageNotificationLevel>,
     pub description: Option<String>,
     pub discovery_splash: Option<ImageHash>,
     pub emojis: Vec<Emoji>,
@@ -637,8 +637,6 @@ impl<'de> Deserialize<'de> for Guild {
                     }
                 }
 
-                let default_message_notifications = default_message_notifications
-                    .ok_or_else(|| DeError::missing_field("default_message_notifications"))?;
                 let explicit_content_filter = explicit_content_filter
                     .ok_or_else(|| DeError::missing_field("explicit_content_filter"))?;
                 let features = features.ok_or_else(|| DeError::missing_field("features"))?;
