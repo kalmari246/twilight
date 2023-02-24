@@ -1,17 +1,35 @@
 use crate::{
-    gateway::ShardId, guild::Guild, oauth::PartialApplication, user::CurrentUser,
+    gateway::ShardId, guild::Guild, oauth::PartialApplication, user::{CurrentUser, User},
 };
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Ready {
-    pub application: Option<PartialApplication>,
+    pub analytics_token: String,
+    pub api_code_version: u8,
+    pub auth_session_id_hash: String,
+    //pub connected_accounts: Vec<_>,
+    //pub consents: Consents,
+    pub country_code: String,
+    //pub experiments: Vec<_>,
+    pub friend_suggestion_count: u8,
+    pub geo_ordered_rtc_regions: Vec<String>,
+    //pub guild_experiments: Vec<_>
+    //pub guild_join_requests: Vec<_>
     pub guilds: Vec<Guild>,
+    //pub merged_members: Vec<_>,
+    //pub private_channels: Vec<_>,
+    //pub read_state: ReadState,
+    //pub relationships: Vec<_>,
     pub resume_gateway_url: String,
     pub session_id: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub shard: Option<ShardId>,
+    pub session_type: String,
+    //pub sessions: Vec<_>,
+    //pub tutorial: ?,
     pub user: CurrentUser,
+    //pub user_guild_settings: UserGuildSettings,
+    pub user_settings_proto: String,
+    pub users: Vec<User>,
     #[serde(rename = "v")]
     pub version: u64,
 }

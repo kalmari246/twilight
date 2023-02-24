@@ -77,7 +77,7 @@ use std::fmt::{Formatter, Result as FmtResult};
 #[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct Guild {
     pub afk_channel_id: Option<Id<ChannelMarker>>,
-    pub afk_timeout: AfkTimeout,
+    pub afk_timeout: Option<AfkTimeout>,
     pub application_id: Option<Id<ApplicationMarker>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub approximate_member_count: Option<u64>,
@@ -637,8 +637,6 @@ impl<'de> Deserialize<'de> for Guild {
                     }
                 }
 
-                let afk_timeout =
-                    afk_timeout.ok_or_else(|| DeError::missing_field("afk_timeout"))?;
                 let default_message_notifications = default_message_notifications
                     .ok_or_else(|| DeError::missing_field("default_message_notifications"))?;
                 let explicit_content_filter = explicit_content_filter
