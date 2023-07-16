@@ -8,6 +8,7 @@
 pub mod audit_log;
 pub mod auto_moderation;
 pub mod invite;
+pub mod onboarding;
 pub mod scheduled_event;
 pub mod template;
 pub mod widget;
@@ -132,6 +133,9 @@ pub struct Guild {
     pub public_updates_channel_id: Option<Id<ChannelMarker>>,
     pub roles: Vec<Role>,
     pub rules_channel_id: Option<Id<ChannelMarker>>,
+    /// The ID of the channel where admins and moderators of Community guilds receive safety alerts from Discord.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub safety_alerts_channel_id: Option<Id<ChannelMarker>>,
     pub splash: Option<ImageHash>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub stage_instances: Vec<StageInstance>,
@@ -195,6 +199,7 @@ impl<'de> Deserialize<'de> for Guild {
             Presences,
             PublicUpdatesChannelId,
             Roles,
+            SafetyAlertsChannelId,
             Splash,
             StageInstances,
             Stickers,
@@ -256,6 +261,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let mut presences = None;
                 let mut public_updates_channel_id = None::<Option<_>>;
                 let mut roles = None;
+                let mut safety_alerts_channel_id = None::<Option<_>>;
                 let mut splash = None::<Option<_>>;
                 let mut stage_instances = None::<Vec<StageInstance>>;
                 let mut stickers = None::<Vec<Sticker>>;
@@ -546,6 +552,13 @@ impl<'de> Deserialize<'de> for Guild {
 
                             roles = Some(map.next_value()?);
                         }
+                        Field::SafetyAlertsChannelId => {
+                            if safety_alerts_channel_id.is_some() {
+                                return Err(DeError::duplicate_field("safety_alerts_channel_id"));
+                            }
+
+                            safety_alerts_channel_id = Some(map.next_value()?);
+                        }
                         Field::Splash => {
                             if splash.is_some() {
                                 return Err(DeError::duplicate_field("splash"));
@@ -669,6 +682,7 @@ impl<'de> Deserialize<'de> for Guild {
                 let premium_progress_bar_enabled = premium_progress_bar_enabled.unwrap_or_default();
                 let public_updates_channel_id = public_updates_channel_id.unwrap_or_default();
                 let rules_channel_id = rules_channel_id.unwrap_or_default();
+                let safety_alerts_channel_id = safety_alerts_channel_id.unwrap_or_default();
                 let splash = splash.unwrap_or_default();
                 let stage_instances = stage_instances.unwrap_or_default();
                 let stickers = stickers.unwrap_or_default();
@@ -720,6 +734,7 @@ impl<'de> Deserialize<'de> for Guild {
                     ?public_updates_channel_id,
                     ?rules_channel_id,
                     ?roles,
+                    ?safety_alerts_channel_id,
                     ?splash,
                     ?stage_instances,
                     ?stickers,
@@ -787,6 +802,7 @@ impl<'de> Deserialize<'de> for Guild {
                     public_updates_channel_id,
                     roles,
                     rules_channel_id,
+                    safety_alerts_channel_id,
                     splash,
                     stage_instances,
                     stickers,
@@ -912,6 +928,7 @@ mod tests {
             public_updates_channel_id: None,
             roles: Vec::new(),
             rules_channel_id: Some(Id::new(6)),
+            safety_alerts_channel_id: Some(Id::new(9)),
             splash: Some(image_hash::SPLASH),
             stage_instances: Vec::new(),
             stickers: Vec::new(),
@@ -931,7 +948,7 @@ mod tests {
             &[
                 Token::Struct {
                     name: "Guild",
-                    len: 46,
+                    len: 47,
                 },
                 Token::Str("afk_channel_id"),
                 Token::Some,
@@ -1035,6 +1052,10 @@ mod tests {
                 Token::Some,
                 Token::NewtypeStruct { name: "Id" },
                 Token::Str("6"),
+                Token::Str("safety_alerts_channel_id"),
+                Token::Some,
+                Token::NewtypeStruct { name: "Id" },
+                Token::Str("9"),
                 Token::Str("splash"),
                 Token::Some,
                 Token::Str(image_hash::SPLASH_INPUT),
