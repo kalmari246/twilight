@@ -69,7 +69,7 @@ use crate::{
     session::Session,
     Config, Message, ShardId,
 };
-use futures_util::{SinkExt, StreamExt};
+use futures_util::{stream::Stream, SinkExt};
 use serde::{de::DeserializeOwned, Deserialize};
 #[cfg(any(
     feature = "native",
@@ -154,7 +154,7 @@ pub enum ConnectionStatus {
         /// Close code of the close message.
         close_code: CloseCode,
     },
-    /// Shard is waiting to establish an active session.
+    /// Shard is waiting to establish or resume a session.
     Identifying,
     /// Shard is replaying missed dispatch events.
     ///
@@ -235,6 +235,19 @@ struct MinimalReady {
     resume_gateway_url: Box<str>,
     /// ID of the new identified session.
     session_id: String,
+}
+
+/// Possible actions the shard should take.
+#[derive(Debug)]
+enum NextAction {
+    /// Close the websocket connection with a [`CloseFrame::RESUME`].
+    CloseResume,
+    /// Close the websocket connection with a [`CloseFrame::NORMAL`].
+    CloseNormal,
+    /// Send a heartbeat.
+    Heartbeat,
+    /// Send a resume.
+    Resume,
 }
 
 /// Gateway API client responsible for up to 2500 guilds.
@@ -359,6 +372,8 @@ pub struct Shard {
     /// Zlib decompressor.
     #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
     inflater: Inflater,
+    /// Next action to take in response to certain gateway events.
+    next_action: Option<NextAction>,
     /// Recent heartbeat latency statistics.
     ///
     /// The latency is reset on receiving [`GatewayEvent::Hello`] as the host
@@ -404,6 +419,7 @@ impl Shard {
             identify_handle: None,
             #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
             inflater: Inflater::new(),
+            next_action: None,
             latency: Latency::new(),
             ratelimiter: None,
             resume_gateway_url: None,
@@ -591,6 +607,35 @@ impl Shard {
             _ => {}
         }
 
+        match self.next_action.take() {
+            Some(NextAction::CloseNormal) => {
+                self.close(CloseFrame::NORMAL)
+                    .await
+                    .map_err(ReceiveMessageError::from_send)?;
+            }
+            Some(NextAction::CloseResume) => {
+                self.session = self
+                    .close(CloseFrame::RESUME)
+                    .await
+                    .map_err(ReceiveMessageError::from_send)?;
+            }
+            Some(NextAction::Resume) => {
+                let session = self.session().expect("variant only set if some");
+                let resume = Resume::new(session.sequence(), session.id(), self.config().token());
+                let json = command::prepare(&resume).map_err(ReceiveMessageError::from_send)?;
+                self.send(json)
+                    .await
+                    .map_err(ReceiveMessageError::from_send)?;
+                self.status = ConnectionStatus::Resuming;
+            }
+            Some(NextAction::Heartbeat) => {
+                self.heartbeat()
+                    .await
+                    .map_err(ReceiveMessageError::from_send)?;
+            }
+            None => {}
+        }
+
         let message = loop {
             let next_action = |cx: &mut Context<'_>| {
                 if !(self.status.is_disconnected() || self.status.is_fatally_closed()) {
@@ -628,7 +673,7 @@ impl Shard {
                 }
 
                 if let Poll::Ready(message) =
-                    Pin::new(&mut self.connection.as_mut().expect("connected").next()).poll(cx)
+                    Pin::new(self.connection.as_mut().expect("connected")).poll_next(cx)
                 {
                     return Poll::Ready(Action::Message(message));
                 }
@@ -784,12 +829,10 @@ impl Shard {
                 }
             }
             Message::Text(event) => {
-                self.process(event)
-                    .await
-                    .map_err(|source| ReceiveMessageError {
-                        kind: ReceiveMessageErrorType::Process,
-                        source: Some(Box::new(source)),
-                    })?;
+                self.process(event).map_err(|source| ReceiveMessageError {
+                    kind: ReceiveMessageErrorType::Process,
+                    source: Some(Box::new(source)),
+                })?;
             }
         }
 
@@ -1022,7 +1065,7 @@ impl Shard {
     ///
     /// [`GatewayEvent`]: twilight_model::gateway::event::GatewayEvent
     #[allow(clippy::too_many_lines)]
-    async fn process(&mut self, event: &str) -> Result<(), ProcessError> {
+    fn process(&mut self, event: &str) -> Result<(), ProcessError> {
         let (raw_opcode, maybe_sequence, maybe_event_type) =
             GatewayEventDeserializer::from_json(event)
                 .ok_or(ProcessError {
@@ -1065,32 +1108,13 @@ impl Shard {
                     _ => {}
                 }
 
-                // READY *should* be the first received dispatch event (which
-                // initializes `self.session`), but it shouldn't matter that
-                // much if it's not.
                 if let Some(session) = self.session.as_mut() {
-                    let last_sequence = session.set_sequence(sequence);
-
-                    // If a sequence has been skipped then we may have missed a
-                    // message and should cause a reconnect so we can attempt to get
-                    // that message again.
-                    if sequence > last_sequence + 1 {
-                        tracing::info!(
-                            missed_events = sequence - (last_sequence + 1),
-                            "dispatch events have been missed",
-                        );
-                        self.session = self
-                            .close(CloseFrame::RESUME)
-                            .await
-                            .map_err(ProcessError::from_send)?;
-                    }
-                } else {
-                    tracing::info!("unable to store sequence");
+                    session.set_sequence(sequence);
                 }
             }
             Some(OpCode::Heartbeat) => {
                 tracing::debug!("received heartbeat");
-                self.heartbeat().await.map_err(ProcessError::from_send)?;
+                self.next_action = Some(NextAction::Heartbeat);
             }
             Some(OpCode::HeartbeatAck) => {
                 let requested = self.latency.received().is_none() && self.latency.sent().is_some();
@@ -1121,17 +1145,18 @@ impl Shard {
                 // remote which invalidates the recorded latencies.
                 self.latency = Latency::new();
 
-                match self.session() {
-                    Some(session) => {
-                        tracing::debug!(sequence = session.sequence(), "sending resume");
-                        let resume =
-                            Resume::new(session.sequence(), session.id(), self.config().token());
-                        let json = command::prepare(&resume).map_err(ProcessError::from_send)?;
-                        self.send(json).await.map_err(ProcessError::from_send)?;
-                    }
-                    None => {
-                        // Can not use `MessageSender` since it is only polled
-                        // after the shard is identified.
+                if self.session.is_some() {
+                    self.next_action = Some(NextAction::Resume);
+                } else {
+                    // Can not use `MessageSender` since it is only polled after
+                    // the shard is identified.
+
+                    // If the JoinHandle is finished, or there is none (def: true), we create a new one
+                    if self
+                        .identify_handle
+                        .as_ref()
+                        .map_or(true, JoinHandle::is_finished)
+                    {
                         self.identify_handle = Some(tokio::spawn({
                             let shard_id = self.id();
                             let queue = self.config().queue().clone();
@@ -1147,22 +1172,14 @@ impl Shard {
                 let resumable = Self::parse_event(event)?.data;
                 tracing::debug!(resumable, "received invalid session");
                 if resumable {
-                    self.session = self
-                        .close(CloseFrame::RESUME)
-                        .await
-                        .map_err(ProcessError::from_send)?;
+                    self.next_action = Some(NextAction::CloseResume);
                 } else {
-                    self.close(CloseFrame::NORMAL)
-                        .await
-                        .map_err(ProcessError::from_send)?;
+                    self.next_action = Some(NextAction::CloseNormal);
                 }
             }
             Some(OpCode::Reconnect) => {
                 tracing::debug!("received reconnect");
-                self.session = self
-                    .close(CloseFrame::RESUME)
-                    .await
-                    .map_err(ProcessError::from_send)?;
+                self.next_action = Some(NextAction::CloseResume);
             }
             _ => tracing::info!("received an unknown opcode: {raw_opcode}"),
         }
@@ -1208,19 +1225,7 @@ impl Shard {
                     source
                 })?,
         );
-
-        if self.session().is_some() {
-            // Defer sending a Resume event until Hello has been received to
-            // guard against the first message being a websocket close message
-            // (causing us to miss replayed dispatch events).
-            // We also set/reset the ratelimiter upon receiving Hello, which
-            // means sending anything before then will not be recorded by the
-            // ratelimiter.
-            self.status = ConnectionStatus::Resuming;
-        } else {
-            self.status = ConnectionStatus::Identifying;
-        }
-
+        self.status = ConnectionStatus::Identifying;
         #[cfg(any(feature = "zlib-stock", feature = "zlib-simd"))]
         self.inflater.reset();
 

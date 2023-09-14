@@ -13,7 +13,7 @@ use twilight_model::{
     },
     guild::{
         AfkTimeout, DefaultMessageNotificationLevel, Emoji, ExplicitContentFilter, Guild, Member,
-        MemberFlags, MfaLevel, NSFWLevel, PartialMember, Permissions, PremiumTier, Role,
+        MemberFlags, MfaLevel, NSFWLevel, PartialMember, Permissions, PremiumTier, Role, RoleFlags,
         SystemChannelFlags, VerificationLevel,
     },
     id::{
@@ -44,6 +44,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         author: User {
             accent_color: None,
             avatar: Some(avatar),
+            avatar_decoration: None,
             banner: None,
             bot: false,
             discriminator: 1,
@@ -120,6 +121,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
             user: User {
                 accent_color: None,
                 avatar: Some(avatar),
+                avatar_decoration: None,
                 banner: None,
                 bot: false,
                 discriminator: 1,
@@ -136,6 +138,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
                 verified: None,
             },
         }),
+        message_author_id: Some(Id::new(7)),
         message_id: Id::new(4),
         user_id: Id::new(3),
     });
@@ -159,6 +162,7 @@ pub fn cache_with_message_and_reactions() -> InMemoryCache {
         user: User {
             accent_color: None,
             avatar: Some(user_5_avatar),
+            avatar_decoration: None,
             banner: None,
             bot: false,
             discriminator: 2,
@@ -302,6 +306,7 @@ pub fn role(id: Id<RoleMarker>) -> Role {
         name: "test".to_owned(),
         permissions: Permissions::empty(),
         position: 0,
+        flags: RoleFlags::empty(),
         tags: None,
         unicode_emoji: None,
     }
@@ -352,6 +357,7 @@ pub fn user(id: Id<UserMarker>) -> User {
     User {
         accent_color: None,
         avatar: None,
+        avatar_decoration: None,
         banner: Some(banner),
         bot: false,
         discriminator: 1,

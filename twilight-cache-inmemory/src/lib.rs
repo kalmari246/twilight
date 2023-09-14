@@ -250,6 +250,7 @@ impl InMemoryCache {
     /// Clear the state of the Cache.
     ///
     /// This is equal to creating a new empty cache.
+    #[allow(clippy::missing_panics_doc)]
     pub fn clear(&self) {
         self.channels.clear();
         self.channel_messages.clear();
@@ -369,6 +370,7 @@ impl InMemoryCache {
     }
 
     /// Gets the current user.
+    #[allow(clippy::missing_panics_doc)]
     pub fn current_user(&self) -> Option<CurrentUser> {
         self.current_user
             .lock()
@@ -929,7 +931,7 @@ mod tests {
     use crate::{test, InMemoryCache};
     use twilight_model::{
         gateway::payload::incoming::RoleDelete,
-        guild::{Member, MemberFlags, Permissions, Role},
+        guild::{Member, MemberFlags, Permissions, Role, RoleFlags},
         id::Id,
         util::Timestamp,
     };
@@ -990,6 +992,7 @@ mod tests {
                     name: "test".to_owned(),
                     permissions: Permissions::empty(),
                     position: 0,
+                    flags: RoleFlags::empty(),
                     tags: None,
                     unicode_emoji: None,
                 },
@@ -1003,6 +1006,7 @@ mod tests {
                     name: "test".to_owned(),
                     permissions: Permissions::empty(),
                     position: 1,
+                    flags: RoleFlags::empty(),
                     tags: None,
                     unicode_emoji: None,
                 },

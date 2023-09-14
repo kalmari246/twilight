@@ -79,7 +79,7 @@ mod tests {
             Channel, ChannelType, Message,
         },
         gateway::payload::incoming::InteractionCreate,
-        guild::{MemberFlags, PartialMember, Permissions, Role},
+        guild::{MemberFlags, PartialMember, Permissions, Role, RoleFlags},
         id::Id,
         user::User,
         util::{image_hash::ImageHashParseError, ImageHash, Timestamp},
@@ -170,6 +170,7 @@ mod tests {
                             author: User {
                                 accent_color: None,
                                 avatar: Some(avatar3),
+                                avatar_decoration: None,
                                 banner: None,
                                 bot: false,
                                 discriminator: 1,
@@ -240,6 +241,7 @@ mod tests {
                             name: "role name".into(),
                             permissions: Permissions::empty(),
                             position: 2i64,
+                            flags: RoleFlags::empty(),
                             tags: None,
                             unicode_emoji: None,
                         },
@@ -249,6 +251,7 @@ mod tests {
                         User {
                             accent_color: None,
                             avatar: Some(avatar2),
+                            avatar_decoration: None,
                             banner: None,
                             bot: false,
                             discriminator: 5678,
@@ -287,6 +290,7 @@ mod tests {
                 user: Some(User {
                     accent_color: None,
                     avatar: Some(avatar3),
+                    avatar_decoration: None,
                     banner: None,
                     bot: false,
                     discriminator: 1234,
