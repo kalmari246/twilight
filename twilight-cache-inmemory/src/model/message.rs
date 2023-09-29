@@ -89,6 +89,8 @@ pub struct CachedMessage {
     channel_id: Id<ChannelMarker>,
     components: Vec<Component>,
     pub(crate) content: String,
+    pub(crate) deleted: bool,
+    pub(crate) edited_content: Vec<String>,
     pub(crate) edited_timestamp: Option<Timestamp>,
     pub(crate) embeds: Vec<Embed>,
     flags: Option<MessageFlags>,
@@ -170,6 +172,16 @@ impl CachedMessage {
     /// [`Message::content`]: twilight_model::channel::Message::content
     pub fn content(&self) -> &str {
         &self.content
+    }
+
+    /// Is this message deleted.
+    pub fn deleted(&self) -> bool {
+        self.deleted
+    }
+
+    /// Past content of a message.
+    pub fn edited_content(&self) -> &[String] {
+        &self.edited_content
     }
 
     /// [`Timestamp`] of the date the message was last edited.
@@ -328,6 +340,8 @@ impl CachedMessage {
             channel_id,
             components,
             content,
+            deleted: false,
+            edited_content: Vec::new(),
             edited_timestamp,
             embeds,
             flags,

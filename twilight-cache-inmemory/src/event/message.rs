@@ -1,5 +1,5 @@
 use crate::{config::ResourceType, model::CachedMessage, InMemoryCache, UpdateCache};
-use std::borrow::Cow;
+use std::{borrow::Cow, mem};
 use twilight_model::gateway::payload::incoming::{
     MessageCreate, MessageDelete, MessageDeleteBulk, MessageUpdate,
 };
@@ -47,12 +47,8 @@ impl UpdateCache for MessageDelete {
             return;
         }
 
-        cache.messages.remove(&self.id);
-
-        let mut channel_messages = cache.channel_messages.entry(self.channel_id).or_default();
-
-        if let Some(idx) = channel_messages.iter().position(|id| *id == self.id) {
-            channel_messages.remove(idx);
+        if let Some(mut message) = cache.messages.get_mut(&self.id) {
+            message.deleted = true;
         }
     }
 }
@@ -66,13 +62,8 @@ impl UpdateCache for MessageDeleteBulk {
         let mut channel_messages = cache.channel_messages.entry(self.channel_id).or_default();
 
         for id in &self.ids {
-            cache.messages.remove(id);
-
-            if let Some(idx) = channel_messages
-                .iter()
-                .position(|message_id| message_id == id)
-            {
-                channel_messages.remove(idx);
+            if let Some(mut message) = cache.messages.get_mut(&id) {
+                message.deleted = true;
             }
         }
     }
@@ -88,6 +79,10 @@ impl UpdateCache for MessageUpdate {
             if let Some(attachments) = &self.attachments {
                 message.attachments = attachments.clone();
             }
+
+            let content = mem::take(&mut message.content);
+
+            message.edited_content.push(content);
 
             if let Some(content) = &self.content {
                 message.content = content.clone();
