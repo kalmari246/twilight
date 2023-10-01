@@ -19,28 +19,26 @@ impl Identify {
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct IdentifyInfo {
-    pub capabilities: u16,
-    pub client_state: IdentifyClientState,
     pub compress: bool,
-    //pub intents: Intents,
-    //pub large_threshold: u64,
     pub presence: Option<UpdatePresencePayload>,
     pub properties: IdentifyProperties,
-    //pub shard: Option<ShardId>,
     pub token: String,
+    #[serde(flatten)]
+    pub extra_info: IdentifyExtraInfo,
 }
 
-impl Default for IdentifyInfo {
-    fn default() -> Self {
-        Self {
-            capabilities: 4093,
-            properties: IdentifyProperties::default(),
-            presence: None,
-            compress: false,
-            client_state: IdentifyClientState::default(),
-            token: String::new(),
-        }
-    }
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+#[serde(untagged)]
+pub enum IdentifyExtraInfo {
+    Bot {
+        intents: Intents,
+        large_threshold: u64,
+        shard: Option<ShardId>,
+    },
+    User {
+        capabilities: u16,
+        client_state: IdentifyClientState,
+    },
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

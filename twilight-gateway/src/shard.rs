@@ -95,7 +95,7 @@ use twilight_model::gateway::{
     payload::{
         incoming::Hello,
         outgoing::{
-            identify::{IdentifyInfo, IdentifyProperties},
+            identify::{IdentifyClientState, IdentifyExtraInfo, IdentifyInfo, IdentifyProperties},
             Heartbeat, Identify, Resume,
         },
     },
@@ -775,22 +775,35 @@ impl Shard {
                     self.identify_handle = None;
 
                     tracing::debug!("sending identify");
+
+                    let extra_info = if self.config.token().starts_with("Bot ") {
+                        IdentifyExtraInfo::Bot {
+                            intents: self.config.intents(),
+                            large_threshold: self.config.large_threshold(),
+                            shard: Some(self.id()),
+                        }
+                    } else {
+                        IdentifyExtraInfo::User {
+                            capabilities: 4093,
+                            client_state: IdentifyClientState::default(),
+                        }
+                    };
+
                     let identify = Identify::new(IdentifyInfo {
                         compress: false,
-                        //intents: self.config.intents(),
-                        //large_threshold: self.config.large_threshold(),
                         presence: self.config.presence().cloned(),
                         properties: self
                             .config
                             .identify_properties()
                             .cloned()
                             .unwrap_or_else(default_identify_properties),
-                        //shard: Some(self.id()),
                         token: self.config.token().to_owned(),
-                        ..Default::default()
+                        extra_info,
                     });
+
                     let json =
                         command::prepare(&identify).map_err(ReceiveMessageError::from_send)?;
+
                     self.send(json)
                         .await
                         .map_err(ReceiveMessageError::from_send)?;
