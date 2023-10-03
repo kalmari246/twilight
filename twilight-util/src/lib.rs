@@ -23,3 +23,6 @@ pub mod permission_calculator;
 
 #[cfg(feature = "snowflake")]
 pub mod snowflake;
+
+#[cfg(feature = "token")]
+pub mod token;

@@ -13,6 +13,7 @@ rust-version.workspace = true
 version = "0.15.4"
 
 [dependencies]
+base64 = { version = "0.21.4", default-features = false, optional = true }
 twilight-model = { default-features = false, optional = true, path = "../twilight-model", version = "0.15.4" }
 twilight-validate = { default-features = false, optional = true, path = "../twilight-validate", version = "0.15.3" }
 
@@ -26,7 +27,8 @@ builder = ["dep:twilight-model", "dep:twilight-validate"]
 link = ["dep:twilight-model"]
 permission-calculator = ["dep:twilight-model"]
 snowflake = ["dep:twilight-model"]
-full = ["builder", "link", "permission-calculator", "snowflake"]
+token = ["dep:base64", "dep:twilight-model"]
+full = ["builder", "link", "permission-calculator", "snowflake", "token"]
 
 [package.metadata.docs.rs]
 all-features = true
