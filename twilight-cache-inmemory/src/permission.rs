@@ -555,7 +555,7 @@ impl<'a> InMemoryCachePermissions<'a> {
         self.cache
             .guilds
             .get(&guild_id)
-            .map(|r| r.owner_id == user_id)
+            .map(|r| r.owner_id == Some(user_id))
             .unwrap_or_default()
     }
 
