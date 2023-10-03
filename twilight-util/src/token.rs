@@ -22,13 +22,13 @@ impl error::Error for NotAToken {}
 
 /// Decode base64 to a byte array of max size `N`.
 fn base64_decode<const N: usize>(base64: &str) -> Option<([u8; N], usize)> {
-    const SLOPPY_STANDARD_NO_PAD: GeneralPurpose = GeneralPurpose::new(
-        &alphabet::STANDARD,
+    const SLOPPY_URL_SAFE_NO_PAD: GeneralPurpose = GeneralPurpose::new(
+        &alphabet::URL_SAFE,
         general_purpose::NO_PAD.with_decode_allow_trailing_bits(true),
     );
 
     let mut bytes = [0; N];
-    let len = SLOPPY_STANDARD_NO_PAD
+    let len = SLOPPY_URL_SAFE_NO_PAD
         .decode_slice_unchecked(base64, &mut bytes)
         .ok()?;
 
@@ -55,4 +55,3 @@ fn parse_inner(token: &str) -> Option<(Id<UserMarker>, u64, &str)> {
 pub fn parse(token: &str) -> Result<(Id<UserMarker>, u64, &str), NotAToken> {
     parse_inner(token).ok_or(NotAToken(()))
 }
-
